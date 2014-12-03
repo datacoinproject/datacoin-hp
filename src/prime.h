@@ -308,7 +308,7 @@ public:
         // Acquire the current word from the bitmap
         sieve_word_t lBits = vfActiveCandidates[GetWordNum(nCandidateIndex)];
 
-        loop
+        while (true)
         {
             nCandidateIndex++;
             if (nCandidateIndex >= nSieveSize)

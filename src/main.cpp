@@ -4564,7 +4564,7 @@ void static BitcoinMiner(CWallet *pwallet)
     int64 nSieveGenTime = 0; // how many milliseconds sieve generation took
     bool fIncrementPrimorial = true; // increase or decrease primorial factor
 
-    try { loop {
+    try { while(true) {
         while (vNodes.empty())
             MilliSleep(1000);
 
@@ -4603,7 +4603,7 @@ void static BitcoinMiner(CWallet *pwallet)
         // Based on mustyoshi's patch from https://bitcointalk.org/index.php?topic=251850.msg2689981#msg2689981
         uint256 phash;
         mpz_class mpzHash;
-        loop {
+        while (true) {
             // Fast loop
             if (pblock->nNonce >= 0xffff0000)
                 break;
@@ -4634,7 +4634,7 @@ void static BitcoinMiner(CWallet *pwallet)
         int64 nPrimeTimerStart = GetTimeMicros();
         Primorial(nPrimorialMultiplier, mpzPrimorial);
 
-        loop
+        while (true) 
         {
             unsigned int nTests = 0;
             unsigned int nPrimesHit = 0;
@@ -4761,7 +4761,7 @@ void static BitcoinMiner(CWallet *pwallet)
                 // Primecoin: update time and nonce
                 pblock->nTime = max(pblock->nTime, (unsigned int) GetAdjustedTime());
                 pblock->nNonce++;
-                loop {
+                while (true) {
                     // Fast loop
                     if (pblock->nNonce >= 0xffff0000)
                         break;
