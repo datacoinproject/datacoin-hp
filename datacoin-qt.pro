@@ -423,7 +423,7 @@ LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -l
 win32:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 macx:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 # Link dynamically against GMP
-LIBS += -Wl,-Bdynamic -lgmp
+LIBS += -Wl,-Bdynamic -lgmp -ldl
 
 contains(RELEASE, 1) {
     !win32:!macx {
