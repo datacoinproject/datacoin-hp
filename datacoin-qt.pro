@@ -4,10 +4,12 @@ macx:TARGET = "Datacoin-Qt"
 VERSION = 0.8.3
 INCLUDEPATH += src src/json src/qt
 QT += network
-QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets core gui
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
+CONFIG += static
+
 
 # avoid warnings about FD_SETSIZE being redefined
 win32:DEFINES += FD_SETSIZE=1024

@@ -21,7 +21,11 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QAction>
+#if QT_VERSION < 0x050000
 #include <QDesktopServices>
+#else
+#include <QStandardPaths>
+#endif
 #include <QFileDialog>
 #include <QPushButton>
 

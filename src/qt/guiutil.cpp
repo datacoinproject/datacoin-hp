@@ -13,7 +13,12 @@
 #include <QDoubleValidator>
 #include <QFont>
 #include <QLineEdit>
-#include <QTextDocument> // For Qt::escape
+#if QT_VERSION >= 0x050000
+#include <QUrlQuery>
+#else
+#include <QUrl>
+#endif
+#include <QTextDocument> // for Qt::mightBeRichText
 #include <QAbstractItemView>
 #include <QClipboard>
 #include <QFileDialog>
@@ -98,7 +103,6 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
     QUrlQuery uriQuery(uri);
     QList<QPair<QString, QString> > items = uriQuery.queryItems();
 #endif
-
     for (QList<QPair<QString, QString> >::iterator i = items.begin(); i != items.end(); i++)
     {
         bool fShouldReturnFalse = false;
@@ -143,7 +147,7 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
     //    which will lower-case it (and thus invalidate the address).
     if(uri.startsWith("datacoin://"))
     {
-        uri.replace(0, 12, "datacoin:");
+        uri.replace(0, std::string("datacoin://").length(), "datacoin:");
     }
     QUrl uriInstance(uri);
     return parseBitcoinURI(uriInstance, out);

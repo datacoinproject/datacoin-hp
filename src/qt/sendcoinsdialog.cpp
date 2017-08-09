@@ -26,6 +26,10 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
     ui->clearButton->setIcon(QIcon());
     ui->sendButton->setIcon(QIcon());
 #endif
+#if QT_VERSION >= 0x040700
+    /* Do not move this to the XML file, Qt before 4.7 will choke on it */
+    // ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a Datacoin address (e.g. DAYGPJgC8hzJhycJxTzj3SisDngxaAcdU5)"));
+#endif
 
     addEntry();
 
