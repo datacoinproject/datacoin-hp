@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = datacoin-qt
-macx:TARGET = "Datacoin-Qt"
+macx:TARGET = "Datacoin-HP-Qt"
 VERSION = 0.8.3
 INCLUDEPATH += src src/json src/qt
 QT += network
@@ -425,7 +425,8 @@ LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -l
 win32:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 macx:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 # Link dynamically against GMP
-LIBS += -Wl,-Bdynamic -lgmp -ldl
+!macx:LIBS += -Wl,-Bdynamic -lgmp -ldl
+else:LIBS += -lgmp
 
 contains(RELEASE, 1) {
     !win32:!macx {
