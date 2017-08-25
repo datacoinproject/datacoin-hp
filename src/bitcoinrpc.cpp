@@ -225,6 +225,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getaddressesbyaccount",  &getaddressesbyaccount,  true,      false },
     { "sendtoaddress",          &sendtoaddress,          false,     false },
     { "senddata",               &senddata,               false,     false },
+    { "getdata",                &getdata,                false,     false },
     { "getreceivedbyaddress",   &getreceivedbyaddress,   false,     false },
     { "getreceivedbyaccount",   &getreceivedbyaccount,   false,     false },
     { "listreceivedbyaddress",  &listreceivedbyaddress,  false,     false },
@@ -364,7 +365,7 @@ static string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
             "HTTP/1.1 %d %s\r\n"
             "Date: %s\r\n"
             "Connection: %s\r\n"
-            "Content-Length: %"PRIszu"\r\n"
+            "Content-Length: %" PRIszu "\r\n"
             "Content-Type: application/json\r\n"
             "Server: datacoin-json-rpc/%s\r\n"
             "\r\n"
@@ -431,7 +432,7 @@ int ReadHTTPStatus(std::basic_istream<char>& stream, int &proto)
 int ReadHTTPHeaders(std::basic_istream<char>& stream, map<string, string>& mapHeadersRet)
 {
     int nLen = 0;
-    loop
+    while (true)
     {
         string str;
         std::getline(stream, str);

@@ -274,6 +274,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
         wtx.mapValue["comment"] = params[2].get_str();
     if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
         wtx.mapValue["to"]      = params[3].get_str();
+
     // Transaction data
     std::string txdata;
     if (params.size() > 4 && params[4].type() != null_type && !params[4].get_str().empty()) {
@@ -311,10 +312,31 @@ Value senddata(const Array& params, bool fHelp)
     }
 
     string strError = pwalletMain->SendData(wtx, false, txdata);
+
     if (strError != "")
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
 
     return wtx.GetHash().GetHex();
+}
+
+Value getdata(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "getdata <hash>\n"
+            "Returns base64 data from a given tx-hash.");
+
+    std::string strHash = params[0].get_str();
+    uint256 hash(strHash);
+
+    CTransaction tx;
+    uint256 hashBlock = 0;
+    if (!GetTransaction(hash, tx, hashBlock, true))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
+
+    string data = tx.GetBase64Data();
+
+    return data;
 }
 
 Value listaddressgroupings(const Array& params, bool fHelp)
@@ -774,7 +796,7 @@ static CScript _createmultisig(const Array& params)
     if ((int)keys.size() < nRequired)
         throw runtime_error(
             strprintf("not enough keys supplied "
-                      "(got %"PRIszu" keys, but need at least %d to redeem)", keys.size(), nRequired));
+                      "(got %" PRIszu " keys, but need at least %d to redeem)", keys.size(), nRequired));
     std::vector<CKey> pubkeys;
     pubkeys.resize(keys.size());
     for (unsigned int i = 0; i < keys.size(); i++)

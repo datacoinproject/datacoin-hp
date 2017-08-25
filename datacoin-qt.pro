@@ -1,12 +1,15 @@
 TEMPLATE = app
 TARGET = datacoin-qt
-macx:TARGET = "Datacoin-Qt"
+macx:TARGET = "Datacoin-HP-Qt"
 VERSION = 0.8.3
 INCLUDEPATH += src src/json src/qt
 QT += network
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets core gui
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
+CONFIG += static
+
 
 # avoid warnings about FD_SETSIZE being redefined
 win32:DEFINES += FD_SETSIZE=1024
@@ -425,7 +428,8 @@ LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -l
 win32:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 macx:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 # Link dynamically against GMP
-LIBS += -Wl,-Bdynamic -lgmp
+!macx:LIBS += -Wl,-Bdynamic -lgmp -ldl
+else:LIBS += -lgmp
 
 contains(RELEASE, 1) {
     !win32:!macx {

@@ -1,7 +1,19 @@
-datacoin-hp
-===========
+Datacoin
+========
 
-High-performance version of datacoin (primecoin-hp fork).
+What is Datacoin?
+=================
+
+Datacoin is intended to be reliable censorship-free data storage and a currency to pay for this storage.
+
+Datacoin is based on Bitcoin-style blockchain and Primecoin proof-of-work.
+
+This repository a high-performance version of Datacoin, i.e. a merge of primecoin-hp and datacoin repositories.
+
+Binaries
+========
+
+Precompiled binaries are available in "Releases" section (https://github.com/datacoin-project/datacoin/releases)
 
 
 Primecoin High Performance Version
@@ -27,6 +39,8 @@ Primecoin integration/staging tree
 ==================================
 
 http://primecoin.org
+
+Copyright (c) 2013-2014 Datacoin Developers
 
 Copyright (c) 2013 Primecoin Developers
 
