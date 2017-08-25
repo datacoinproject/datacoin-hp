@@ -23,8 +23,11 @@ void addRowToTable(QTableWidget &table, int n, const char* pstr) {
     itemRowHeader->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
     itemRowHeader->setText(pstr);
     table.setVerticalHeaderItem(n, itemRowHeader);
-
+#if QT_VERSION < 0x05000
     table.verticalHeader()->setResizeMode(QHeaderView::Fixed);
+#else
+    table.verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+#endif
 }
 
 void MiningDialog::setModel(WalletModel *model)
