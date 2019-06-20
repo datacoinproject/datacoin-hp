@@ -277,7 +277,7 @@ static bool FermatProbablePrimalityTest(const CBigNum& n, unsigned int& nLength)
     CBigNum a = 2; // base; Fermat witness
     CBigNum e = n - 1;
     CBigNum r;
-    BN_mod_exp(&r, &a, &e, &n, pctx);
+    BN_mod_exp(r.get(), a.cget(), e.cget(), n.cget(), pctx);
     if (r == 1)
         return true;
     // Failed Fermat test, calculate fractional length
@@ -301,7 +301,7 @@ static bool EulerLagrangeLifchitzPrimalityTest(const CBigNum& n, bool fSophieGer
     CBigNum a = 2;
     CBigNum e = (n - 1) >> 1;
     CBigNum r;
-    BN_mod_exp(&r, &a, &e, &n, pctx);
+    BN_mod_exp(r.get(), a.cget(), e.cget(), n.cget(), pctx);
     CBigNum nMod8 = n % 8;
     bool fPassedTest = false;
     if (fSophieGermain && (nMod8 == 7)) // Euler & Lagrange
