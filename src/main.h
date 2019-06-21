@@ -19,6 +19,11 @@ class CBlock;
 class CBlockIndex;
 class CKeyItem;
 class CReserveKey;
+class COutPoint;
+class CWalletTx;
+class CTransaction;
+class CTxOut;
+
 
 class CAddress;
 class CInv;

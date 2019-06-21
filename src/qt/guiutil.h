@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QMessageBox>
 
+#include <boost/filesystem.hpp>
+
 class SendCoinsRecipient;
 
 QT_BEGIN_NAMESPACE
@@ -47,6 +49,7 @@ namespace GUIUtil
        @see  TransactionView::copyLabel, TransactionView::copyAmount, TransactionView::copyAddress
      */
     void copyEntryData(QAbstractItemView *view, int column, int role=Qt::EditRole);
+    void setClipboard(const QString& str);
 
     /** Get save filename, mimics QFileDialog::getSaveFileName, except that it appends a default suffix
         when no suffix is provided by the user.
@@ -115,6 +118,12 @@ namespace GUIUtil
         QString coreOptions;
         QString uiOptions;
     };
+
+    /* Convert QString to OS specific boost path through UTF-8 */
+    boost::filesystem::path qstringToBoostPath(const QString &path);
+
+    /* Convert OS specific boost path to QString through UTF-8 */
+    QString boostPathToQString(const boost::filesystem::path &path);
 
 } // namespace GUIUtil
 

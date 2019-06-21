@@ -132,6 +132,20 @@ int main(int argc, char *argv[])
     // Register meta types used for QMetaObject::invokeMethod
     qRegisterMetaType< bool* >();
 
+    // Generate high-dpi pixmaps
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    // Address 4K screen resolution: http://doc.qt.io/qt-5/highdpi.html
+    // enable automatic scaling based on the pixel density of the monitor
+    qputenv( "QT_AUTO_SCREEN_SCALE_FACTOR", "1" );
+
+    QApplication::setOrganizationName("Datacoin");
+    QApplication::setOrganizationDomain("datacoin.org");
+    if (GetBoolArg("-testnet", false)) // Separate UI settings for testnet
+        QApplication::setApplicationName("Datacoin-Qt-testnet");
+    else
+        QApplication::setApplicationName("Datacoin-Qt");
+
     // Do this early as we don't want to bother initializing if we are just calling IPC
     // ... but do it after creating app, so QCoreApplication::arguments is initialized:
     if (PaymentServer::ipcSendCommandLine())
@@ -209,7 +223,7 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_MAC
     // on mac, also change the icon now because it would look strange to have a testnet splash (green) and a std app icon (orange)
     if(GetBoolArg("-testnet")) {
-        MacDockIconHandler::instance()->setIcon(QIcon(":icons/datacoin_testnet"));
+        MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
     }
 #endif
 
@@ -235,7 +249,7 @@ int main(int argc, char *argv[])
 
         boost::thread_group threadGroup;
 
-        BitcoinGUI window;
+        BitcoinGUI window(GetBoolArg("-testnet", false), 0);
         guiref = &window;
 
         QTimer* pollShutdownTimer = new QTimer(guiref);
