@@ -123,8 +123,8 @@ void MacDockIconHandler::handleDockIconClickEvent()
 {
     if (this->mainWindow)
     {
-    this->mainWindow->activateWindow();
-    this->mainWindow->show();
+        this->mainWindow->activateWindow();
+        this->mainWindow->show();
     }
 
     emit this->dockIconClicked();
