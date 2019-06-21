@@ -1,10 +1,10 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Bitcoin
-Comment=Bitcoin P2P Cryptocurrency
-Comment[fr]=Bitcoin, monnaie virtuelle cryptographique pair à pair
-Comment[tr]=Bitcoin, eşten eşe kriptografik sanal para birimi
-Exec=/usr/bin/bitcoin-qt
+Name=Datacoin
+Comment=Datacoin P2P Cryptocurrency
+Comment[fr]=Datacoin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Datacoin, eşten eşe kriptografik sanal para birimi
+Exec=/usr/bin/datacoin-qt %u
 Terminal=false
 Type=Application
 Icon=/usr/share/pixmaps/bitcoin128.png

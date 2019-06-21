@@ -3,16 +3,55 @@ TARGET = datacoin-qt
 macx:TARGET = "Datacoin-HP-Qt"
 VERSION = 0.8.3
 INCLUDEPATH += src src/json src/qt
-QT += network
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets core gui
-DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
+QT += core gui network
+DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE QT_NO_PRINTER BOOST_NO_CXX11_SCOPED_ENUMS ENABLE_PRECOMPILED_HEADERS=OFF
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
 CONFIG += no_include_pwd
 CONFIG += thread
-CONFIG += static
+CONFIG += debug # release
+CONFIG += qt_framework
+QT += core gui network testlib
+CONFIG += link_pkgconfig
+CONFIG += moc
 
+QMAKE_CFLAGS_ISYSTEM=
+# qmake on Qt 5.3 and lower doesn't recognize c++14.
+contains(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 4) {
+    CONFIG += c++11
+    QMAKE_CXXFLAGS_CXX11 = $$replace(QMAKE_CXXFLAGS_CXX11, "std=c\+\+11", "std=c++1y")
+    QMAKE_CXXFLAGS_CXX11 = $$replace(QMAKE_CXXFLAGS_CXX11, "std=c\+\+0x", "std=c++1y")
+} else {
+     CONFIG += c++14
+     QT_WARNING_DISABLE_DEPRECATED=1
+}
 
-# avoid warnings about FD_SETSIZE being redefined
-win32:DEFINES += FD_SETSIZE=1024
+# Qt 4 doesn't even know about C++11.
+contains(QT_MAJOR_VERSION, 4) {
+    QMAKE_CXXFLAGS += -std=c++1y
+}
+
+static:DEFINES += STATIC_QT
+
+isEmpty(BDB_LIB_SUFFIX) {
+    # !macx:unix:BDB_LIB_SUFFIX = -5.3
+    windows:macx:BDB_LIB_SUFFIX = -4.8
+}
+
+exists( /usr/local/Cellar/* ) {
+      message( "Configuring for homebrew..." )
+      CONFIG += brew
+}
+
+!windows:!unix {
+    CONFIG += static
+}
+
+greaterThan(QT_MAJOR_VERSION, 4) {
+    QT += widgets
+    DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
+}
 
 # for boost 1.37, add -mt to the boost libraries
 # use: qmake BOOST_LIB_SUFFIX=-mt
@@ -24,6 +63,44 @@ win32:DEFINES += FD_SETSIZE=1024
 #    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
 #    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
 
+
+# winbuild dependencies
+windows {
+    contains(MXE, 1) {
+        # DEPLOYMENT_PLUGIN += qsqlite
+        DEFINES += WIN32
+        BDB_INCLUDE_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/include
+        BDB_LIB_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/lib
+        BOOST_INCLUDE_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/include/boost
+        BOOST_LIB_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/lib
+        BOOST_LIB_SUFFIX=-mt
+        BOOST_THREAD_LIB_SUFFIX=_win32-mt
+        CXXFLAGS=-std=c++11 -march=i686
+        LDFLAGS=-march=i686
+        MINIUPNPC_INCLUDE_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/include
+        MINIUPNPC_LIB_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/lib
+        OPENSSL_INCLUDE_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/include/openssl
+        OPENSSL_LIB_PATH=/usr/lib/mxe/usr/i686-w64-mingw32.static/lib
+        PATH=/usr/lib/mxe/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        QMAKE_LRELEASE=/usr/lib/mxe/usr/i686-w64-mingw32.static/qt5/bin/lrelease
+        QTDIR=/usr/lib/mxe/usr/i686-w64-mingw32.static/qt5
+    }else{
+        lessThan(QT_VERSION, 5.4) {
+            BOOST_LIB_SUFFIX=-mgw48-mt-s-1_55
+        } else {
+            BOOST_LIB_SUFFIX=-mgw49-mt-s-1_55
+        }
+        BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
+        BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
+        BDB_INCLUDE_PATH=C:/deps/db-4.8.30.NC/build_unix
+        BDB_LIB_PATH=C:/deps/db-4.8.30.NC/build_unix
+        OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.1i/include
+        OPENSSL_LIB_PATH=C:/deps/openssl-1.0.1i
+        MINIUPNPC_INCLUDE_PATH=C:/deps
+        MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
+    }
+}
+
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
@@ -34,6 +111,11 @@ contains(RELEASE, 1) {
     macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
     macx:QMAKE_CFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
     macx:QMAKE_OBJECTIVE_CFLAGS += -mmacosx-version-min=10.5 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk
+
+    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.12 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk
+    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.12 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk
+    macx:QMAKE_LFLAGS += -mmacosx-version-min=10.12 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk
+    macx:QMAKE_OBJECTIVE_CFLAGS += -mmacosx-version-min=10.12 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk
 
     !win32:!macx {
         # Linux: static link and extra security (see: https://wiki.debian.org/Hardening)
@@ -108,7 +190,7 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
 }
 
 INCLUDEPATH += src/leveldb/include src/leveldb/helpers
-LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a
+LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a -lz -lsnappy
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
     genleveldb.commands = cd $$PWD/src/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
@@ -146,6 +228,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/addresstablemodel.h \
     src/qt/optionsdialog.h \
     src/qt/sendcoinsdialog.h \
+    src/qt/coincontroldialog.h \
+    src/qt/coincontroltreewidget.h \
     src/qt/addressbookpage.h \
     src/qt/signverifymessagedialog.h \
     src/qt/aboutdialog.h \
@@ -156,6 +240,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/base58.h \
     src/bignum.h \
     src/checkpoints.h \
+    src/coincontrol.h \
     src/compat.h \
     src/sync.h \
     src/util.h \
@@ -230,6 +315,8 @@ SOURCES += src/qt/bitcoin.cpp \
     src/qt/addresstablemodel.cpp \
     src/qt/optionsdialog.cpp \
     src/qt/sendcoinsdialog.cpp \
+    src/qt/coincontroldialog.cpp \
+    src/qt/coincontroltreewidget.cpp \
     src/qt/addressbookpage.cpp \
     src/qt/signverifymessagedialog.cpp \
     src/qt/aboutdialog.cpp \
@@ -297,6 +384,7 @@ SOURCES += src/qt/bitcoin.cpp \
 RESOURCES += src/qt/bitcoin.qrc
 
 FORMS += src/qt/forms/sendcoinsdialog.ui \
+    src/qt/forms/coincontroldialog.ui \
     src/qt/forms/addressbookpage.ui \
     src/qt/forms/signverifymessagedialog.ui \
     src/qt/forms/aboutdialog.ui \
@@ -320,6 +408,8 @@ SOURCES += src/qt/test/test_main.cpp \
 HEADERS += src/qt/test/uritests.h
 DEPENDPATH += src/qt/test
 QT += testlib
+DEFINES += USE_QRCODE
+LIBS += -lqrencode
 TARGET = bitcoin-qt_test
 DEFINES += BITCOIN_QT_TEST
   macx: CONFIG -= app_bundle
@@ -348,6 +438,7 @@ QMAKE_EXTRA_COMPILERS += TSQM
 OTHER_FILES += README.md \
     doc/*.rst \
     doc/*.txt \
+    doc/*.md \
     src/qt/res/bitcoin-qt.rc \
     src/test/*.cpp \
     src/test/*.h \
@@ -373,21 +464,123 @@ isEmpty(BDB_LIB_SUFFIX) {
 }
 
 isEmpty(BDB_INCLUDE_PATH) {
-    macx:BDB_INCLUDE_PATH = /opt/local/include/db48
+    contains(CONFIG, brew) {
+        contains(BDB_LIB_SUFFIX, -4.8) {
+            macx:BDB_INCLUDE_PATH = /usr/local/opt/berkeley-db4/include
+        }else{
+            macx:BDB_INCLUDE_PATH = /usr/local/opt/berkeley-db/include
+        }
+    }else{
+        contains(BDB_LIB_SUFFIX, -4.8) {
+            macx:BDB_INCLUDE_PATH = /opt/local/berkeley-db4/include
+        }else{
+            macx:BDB_INCLUDE_PATH = /opt/local/berkeley-db/include
+        }
+    }
+    windows:BDB_INCLUDE_PATH = C:/dev/coindeps32/bdb-4.8/include
+    # For backward compatibility specify, else assume currency
+    contains(BDB_LIB_SUFFIX, 4.8) {
+        !macx:unix:BDB_INCLUDE_PATH = /usr/local/BerkeleyDB/include
+    } # else{
+      #   !macx:unix:BDB_INCLUDE_PATH = /usr/include
+    # }
+    INCLUDEPATH += $$BDB_INCLUDE_PATH
 }
 
-isEmpty(BOOST_LIB_PATH) {
-    macx:BOOST_LIB_PATH = /opt/local/lib
+isEmpty(BDB_LIB_PATH) {
+    contains(CONFIG, brew) {
+        contains(BDB_LIB_SUFFIX, -4.8) {
+            macx:BDB_LIB_PATH = /usr/local/opt/berkeley-db4/lib
+        }else{
+            macx:BDB_LIB_PATH = /usr/local/opt/berkeley-db/lib
+        }
+    }else{
+        contains(BDB_LIB_SUFFIX, -4.8) {
+            macx:BDB_LIB_PATH = /opt/local/berkeley-db4/lib
+        }else{
+            macx:BDB_LIB_PATH = /opt/local/berkeleydb/lib
+        }
+    }
+    windows:BDB_LIB_PATH = C:/dev/coindeps32/bdb-4.8/lib
+    # For backward compatibility specify, else assume currency
+    contains(BDB_LIB_SUFFIX, -4.8) {
+        !macx:unix:BDB_LIB_PATH = /usr/local/BerkeleyDB/lib
+    } # else{
+      #   !macx:unix:BDB_LIB_PATH = /usr/lib/x86_64-linux-gnu/
+    # }
+    LIBS += $$join(BDB_LIB_PATH,,-L,)
 }
 
 isEmpty(BOOST_INCLUDE_PATH) {
-    macx:BOOST_INCLUDE_PATH = /opt/local/include
+    contains(CONFIG, brew) {
+        macx:BOOST_INCLUDE_PATH = /usr/local/opt/boost/include
+    }else{
+        macx:BOOST_INCLUDE_PATH = /opt/local/include
+    }
+    windows:BOOST_INCLUDE_PATH = C:/dev/coindeps32/boost_1_57_0/include
+    !macx:unix:BOOST_INCLUDE_PATH = /usr/include/boost
+    INCLUDEPATH += $$BOOST_INCLUDE_PATH
 }
 
-win32:DEFINES += WIN32
-win32:RC_FILE = src/qt/res/bitcoin-qt.rc
+isEmpty(BOOST_LIB_PATH) {
+    contains(CONFIG, brew) {
+        macx:BOOST_LIB_PATH = /usr/local/opt/boost/lib
+    }else{
+        macx:BOOST_LIB_PATH = /opt/local/lib
+    }
+    windows:BOOST_LIB_PATH = C:/dev/coindeps32/boost_1_57_0/lib
+    # !macx:unix:BOOST_LIB_PATH = /usr/lib
+    LIBS += $$join(BOOST_LIB_PATH,,-L,)
+}
 
-win32:!contains(MINGW_THREAD_BUGFIX, 0) {
+isEmpty(OPENSSL_INCLUDE_PATH) {
+    contains(CONFIG, brew) {
+        macx:OPENSSL_INCLUDE_PATH = /usr/local/opt/openssl/include
+    }else{
+        macx:OPENSSL_INCLUDE_PATH = /opt/local/include
+    }
+    windows:OPENSSL_INCLUDE_PATH = C:/dev/coindeps32/openssl-1.0.1p/include
+    !macx:unix:OPENSSL_INCLUDE_PATH = /usr/include/openssl
+    INCLUDEPATH += $$OPENSSL_INCLUDE_PATH
+}
+
+isEmpty(OPENSSL_LIB_PATH) {
+    contains(CONFIG, brew) {
+        macx:OPENSSL_LIB_PATH = /usr/local/opt/openssl/lib
+    }else{
+        macx:OPENSSL_LIB_PATH = /opt/local/lib
+    }
+    windows:OPENSSL_LIB_PATH = C:/dev/coindeps32/openssl-1.0.1p/lib
+    # !macx:unix:OPENSSL_LIB_PATH = /usr/lib
+    LIBS += $$join(OPENSSL_LIB_PATH,,-L,)}
+
+# Force OS X Sierra specifics
+macx {
+    CONFIG += 11 x86_64
+    HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
+    INCLUDEPATH += $$MOC_DIR # enable #include of moc_* files
+    OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
+    LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
+    LIBS += /usr/local/opt/miniupnpc/lib/libminiupnpc.a
+    LIBS += /usr/local/opt/berkeley-db/lib/libdb_cxx.a
+    LIBS += /usr/local/opt/openssl/lib/libcrypto.a
+    LIBS += /usr/local/opt/openssl/lib/libssl.a
+    LIBS += /usr/local/opt/boost/lib/libboost_system-mt.a
+    LIBS += /usr/local/opt/boost/lib/libboost_filesystem-mt.a
+    LIBS += /usr/local/opt/boost/lib/libboost_program_options-mt.a
+    LIBS += /usr/local/opt/boost/lib/libboost_thread-mt.a
+    DEFINES += MAC_OSX MSG_NOSIGNAL=0
+    ICON = src/qt/res/icons/slimcoin.icns
+    TARGET = "SLIMCoin-Qt"
+    QMAKE_CFLAGS += -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.12
+    QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.12
+    QMAKE_MAC_SDK = macosx10.12
+    CXXFLAGS += -std=c++11 -march=i686
+    QMAKE_INFO_PLIST = share/qt/Info.plist
+    CONFIG -= brew
+}
+
+windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     # At least qmake's win32-g++-cross profile is missing the -lmingwthrd
     # thread-safety flag. GCC has -mthreads to enable this, but it doesn't
     # work with static linking. -lmingwthrd must come BEFORE -lmingw, so
@@ -409,7 +602,7 @@ macx:HEADERS += src/qt/macdockiconhandler.h
 macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
-macx:ICON = src/qt/res/icons/primecoin.icns
+macx:ICON = src/qt/res/icons/bitcoin.icns
 macx:QMAKE_CFLAGS_THREAD += -pthread
 macx:QMAKE_LFLAGS_THREAD += -pthread
 macx:QMAKE_CXXFLAGS_THREAD += -pthread
@@ -431,8 +624,16 @@ else:LIBS += -lgmp
 contains(RELEASE, 1) {
     !win32:!macx {
         # Linux: turn dynamic linking back on for c/c++ runtime libraries
-        LIBS += -Wl,-Bdynamic
+        LIBS += -Wl,-Bdynamic -ldl
     }
+}
+macx:{
+    QMAKE_RPATHDIR += @executable_path/../Frameworks
+    QMAKE_RPATHDIR += @executable_path/lib
+}
+
+contains(USE_QRCODE, 1) {
+    !macx:!win32:LIBS += -lqrencode
 }
 
 system($$QMAKE_LRELEASE -silent $$TRANSLATIONS)
