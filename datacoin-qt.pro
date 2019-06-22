@@ -306,6 +306,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/threadsafety.h \
     src/limitedmap.h \
     src/qt/splashscreen.h \
+    src/qt/blockexplorer.h \
     src/prime.h \
     src/checkpointsync.h
 
@@ -378,6 +379,7 @@ SOURCES += src/qt/bitcoin.cpp \
     src/leveldb.cpp \
     src/txdb.cpp \
     src/qt/splashscreen.cpp \
+    src/qt/blockexplorer.cpp \
     src/prime.cpp \
     src/checkpointsync.cpp
 
@@ -394,6 +396,7 @@ FORMS += src/qt/forms/sendcoinsdialog.ui \
     src/qt/forms/sendcoinsentry.ui \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
+    src/qt/forms/blockexplorer.ui \
     src/qt/forms/optionsdialog.ui
 
 contains(USE_QRCODE, 1) {

@@ -53,6 +53,7 @@ unsigned int nCoinCacheSize = 5000;
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64 CTransaction::nMinTxFee = MIN_TX_FEE;  // Override with -mintxfee
+bool fAddrIndex = false;
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 int64 CTransaction::nMinRelayTxFee = MIN_TX_FEE;
 
@@ -282,6 +283,7 @@ bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) {
 
 CCoinsViewCache *pcoinsTip = NULL;
 CBlockTreeDB *pblocktree = NULL;
+CAddressDB *paddressmap = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1690,6 +1692,10 @@ bool CBlock::ConnectBlock(CValidationState &state, CBlockIndex* pindex, CCoinsVi
         if (!pblocktree->WriteTxIndex(vPos))
             return state.Abort(_("Failed to write transaction index"));
 
+    if (fAddrIndex)
+        if (!paddressmap->AddTx(vtx, vPos))
+            return state.Abort(_("Failed to write address index"));
+
     // add this block to the view's block chain
     assert(view.SetBestBlock(pindex));
 
@@ -2591,6 +2597,10 @@ bool static LoadBlockIndexDB()
     pblocktree->ReadFlag("txindex", fTxIndex);
     printf("LoadBlockIndexDB(): transaction index %s\n", fTxIndex ? "enabled" : "disabled");
 
+    // Check whether we have a address index
+    paddressmap->ReadEnable(fAddrIndex);
+    printf("LoadBlockIndexDB(): address index %s\n", fAddrIndex ? "enabled" : "disabled");
+
     // Load hashBestChain pointer to end of best chain
     pindexBest = pcoinsTip->GetBestBlock();
     if (pindexBest == NULL)
@@ -2733,6 +2743,9 @@ bool InitBlockIndex() {
     // Use the provided setting for -txindex in the new database
     fTxIndex = GetBoolArg("-txindex", true); // in datacoin by default we need txIndex
     pblocktree->WriteFlag("txindex", fTxIndex);
+    // Use the provided setting for -addrindex in the new database
+    fAddrIndex = GetBoolArg("-addrindex", false);
+    paddressmap->WriteEnable(fAddrIndex);
     printf("Initializing databases...\n");
 
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)

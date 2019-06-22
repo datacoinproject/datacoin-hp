@@ -109,6 +109,7 @@ extern bool fReindex;
 extern bool fBenchmark;
 extern int nScriptCheckThreads;
 extern bool fTxIndex;
+extern bool fAddrIndex;
 extern unsigned int nCoinCacheSize;
 
 // Settings
@@ -121,6 +122,7 @@ static const uint64 nMinDiskSpace = 52428800;
 class CReserveKey;
 class CCoinsDB;
 class CBlockTreeDB;
+class CAddressDB;
 struct CDiskBlockPos;
 class CCoins;
 class CTxUndo;
@@ -2260,6 +2262,9 @@ extern CCoinsViewCache *pcoinsTip;
 
 /** Global variable that points to the active block tree (protected by cs_main) */
 extern CBlockTreeDB *pblocktree;
+
+/** Global variable that points to the address database (protected by cs_main) */
+extern CAddressDB *paddressmap;
 
 struct CBlockTemplate
 {
