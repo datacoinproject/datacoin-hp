@@ -8,6 +8,10 @@
 #include "sync.h"
 #include "hash.h"
 
+#ifndef WIN32
+#include <sys/fcntl.h>
+#endif
+
 #include <boost/algorithm/string/case_conv.hpp> // for to_lower()
 #include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
 
