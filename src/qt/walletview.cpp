@@ -15,6 +15,7 @@
 #include "optionsmodel.h"
 #include "transactionview.h"
 #include "overviewpage.h"
+#include "proofofimage.h"
 #include "askpassphrasedialog.h"
 #include "ui_interface.h"
 
@@ -57,6 +58,8 @@ WalletView::WalletView(QWidget *parent, BitcoinGUI *_gui):
 
     receiveCoinsPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::ReceivingTab);
 
+    proofOfImagePage = new ProofOfImage(gui);
+
     sendCoinsPage = new SendCoinsDialog(gui);
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(gui);
@@ -66,6 +69,7 @@ WalletView::WalletView(QWidget *parent, BitcoinGUI *_gui):
     addWidget(addressBookPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
+    addWidget(proofOfImagePage);
 
     // Clicking on a transaction on the overview page simply sends you to transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
@@ -166,6 +170,12 @@ void WalletView::gotoAddressBookPage()
 {
     gui->getAddressBookAction()->setChecked(true);
     setCurrentWidget(addressBookPage);
+}
+
+void WalletView::gotoProofOfImagePage()
+{
+    gui->getAddressBookAction()->setChecked(true);
+    setCurrentWidget(proofOfImagePage);
 }
 
 void WalletView::gotoReceiveCoinsPage()

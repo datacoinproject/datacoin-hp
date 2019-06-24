@@ -15,6 +15,7 @@ class WalletModel;
 class TransactionView;
 class OverviewPage;
 class AddressBookPage;
+class ProofOfImage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class RPCConsole;
@@ -63,6 +64,7 @@ private:
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
+    ProofOfImage *proofOfImagePage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
 
     TransactionView *transactionView;
@@ -76,6 +78,9 @@ public slots:
     void gotoAddressBookPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
+
+    void gotoProofOfImagePage();
+
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
 
