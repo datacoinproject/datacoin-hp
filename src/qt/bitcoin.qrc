@@ -9,6 +9,7 @@
         <file alias="connect_2">res/icons/connect2_16.png</file>
         <file alias="connect_3">res/icons/connect3_16.png</file>
         <file alias="connect_4">res/icons/connect4_16.png</file>
+        <file alias="data">res/icons/data.png</file>
         <file alias="debugwindow">res/icons/debugwindow.png</file>
         <file alias="edit">res/icons/edit.png</file>
         <file alias="editcopy">res/icons/editcopy.png</file>

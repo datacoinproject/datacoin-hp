@@ -26,6 +26,7 @@
 #include "ui_interface.h"
 #include "wallet.h"
 #include "init.h"
+#include "proofofimage.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -38,11 +39,16 @@
 #include <QToolBar>
 #include <QStatusBar>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QLocale>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QDateTime>
 #include <QMovie>
+#include <QFileDialog>
 #include <QTimer>
 #include <QDragEnterEvent>
 #if QT_VERSION < 0x050000
@@ -226,6 +232,13 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    proofOfImageAction = new QAction(QIcon(":/icons/data"), tr("&Proof of Data"), this);
+    proofOfImageAction ->setToolTip(tr("Store data on the Datacoin blockchain."));
+    proofOfImageAction ->setCheckable(true);
+	proofOfImageAction->setStatusTip(tr("Store data"));
+    proofOfImageAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+    tabGroup->addAction(proofOfImageAction);
+
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -236,6 +249,8 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(proofOfImageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(proofOfImageAction, SIGNAL(triggered()), this, SLOT(gotoProofOfImagePage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -330,6 +345,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
+    toolbar->addAction(proofOfImageAction);
 }
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
@@ -406,6 +422,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     signMessageAction->setEnabled(enabled);
     verifyMessageAction->setEnabled(enabled);
     addressBookAction->setEnabled(enabled);
+    proofOfImageAction->setEnabled(enabled);
 }
 
 void BitcoinGUI::createTrayIcon(bool fIsTestnet)
@@ -550,6 +567,11 @@ void BitcoinGUI::gotoSignMessageTab(QString addr)
 void BitcoinGUI::gotoVerifyMessageTab(QString addr)
 {
     if (walletFrame) walletFrame->gotoVerifyMessageTab(addr);
+}
+
+void BitcoinGUI::gotoProofOfImagePage()
+{
+    if (walletFrame) walletFrame->gotoProofOfImagePage();
 }
 
 void BitcoinGUI::setNumConnections(int count)

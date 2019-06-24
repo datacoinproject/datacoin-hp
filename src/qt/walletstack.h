@@ -23,6 +23,7 @@ class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
+class ProofOfImagePage;
 
 class CWalletManager;
 
@@ -74,6 +75,9 @@ public slots:
     /** Switch to address book page */
     void gotoAddressBookPage();
     /** Switch to receive coins page */
+
+    void gotoProofOfImagePage();
+
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
