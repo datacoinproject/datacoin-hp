@@ -18,6 +18,7 @@ class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
+class BlockExplorer;
 class ProofOfImage;
 class MessagePage;
 
@@ -106,6 +107,7 @@ private:
     QAction *changePassphraseAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
+    QAction *openBlockExplorerAction;
     QAction *proofOfImageAction;
     QAction *messageAction;
     QAction *checkWalletAction;
@@ -115,6 +117,7 @@ private:
     Notificator *notificator;
     TransactionView *transactionView;
     RPCConsole *rpcConsole;
+    BlockExplorer* blockExplorer;
     MessagePage *messagePage;
 
     QMovie *syncIconMovie;
