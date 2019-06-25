@@ -27,6 +27,8 @@
 #include "ui_interface.h"
 #include "wallet.h"
 #include "init.h"
+#include "proofofimage.h"
+#include "messagepage.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -39,11 +41,16 @@
 #include <QToolBar>
 #include <QStatusBar>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QLocale>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QDateTime>
 #include <QMovie>
+#include <QFileDialog>
 #include <QTimer>
 #include <QDragEnterEvent>
 #if QT_VERSION < 0x050000
@@ -231,6 +238,21 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    proofOfImageAction = new QAction(QIcon(":/icons/data"), tr("&Proof of Data"), this);
+    proofOfImageAction ->setToolTip(tr("Store data on the Datacoin blockchain."));
+    proofOfImageAction ->setCheckable(true);
+	proofOfImageAction->setStatusTip(tr("Store data"));
+    proofOfImageAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
+    tabGroup->addAction(proofOfImageAction);
+
+    messageAction = new QAction(QIcon(":/icons/edit"), tr("&Messaging"), this);
+    messageAction->setStatusTip(tr("Sign/Verify, Encrypt/Decrypt"));
+    messageAction->setToolTip(messageAction->statusTip());
+    messageAction->setToolTip(messageAction->statusTip());
+    messageAction->setCheckable(true);
+    messageAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    tabGroup->addAction(messageAction);
+
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -241,6 +263,10 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(proofOfImageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(proofOfImageAction, SIGNAL(triggered()), this, SLOT(gotoProofOfImagePage()));
+    connect(messageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(messageAction, SIGNAL(triggered()), this, SLOT(gotoMessagePage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -288,12 +314,22 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     openBlockExplorerAction->setStatusTip(tr("Open blockchain explorer"));
     openBlockExplorerAction->setToolTip(openBlockExplorerAction->statusTip());
 
+    checkWalletAction = new QAction(QIcon(":/icons/inspect"), tr("&Check Wallet..."), this);
+    checkWalletAction->setStatusTip(tr("Check wallet integrity and report findings"));
+    checkWalletAction->setToolTip(checkWalletAction->statusTip());
+
+    repairWalletAction = new QAction(QIcon(":/icons/repair"), tr("&Repair Wallet..."), this);
+    repairWalletAction->setStatusTip(tr("Fix wallet integrity and remove orphans"));
+    repairWalletAction->setToolTip(repairWalletAction->statusTip());
+
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
     connect(encryptWalletAction, SIGNAL(triggered(bool)), walletFrame, SLOT(encryptWallet(bool)));
+    connect(checkWalletAction, SIGNAL(triggered()), walletFrame, SLOT(checkWallet()));
+    connect(repairWalletAction, SIGNAL(triggered()), walletFrame, SLOT(repairWallet()));
     connect(backupWalletAction, SIGNAL(triggered()), walletFrame, SLOT(backupWallet()));
     connect(changePassphraseAction, SIGNAL(triggered()), walletFrame, SLOT(changePassphrase()));
     connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
@@ -315,6 +351,9 @@ void BitcoinGUI::createMenuBar()
     file->addAction(backupWalletAction);
     file->addAction(signMessageAction);
     file->addAction(verifyMessageAction);
+    file->addSeparator();
+    file->addAction(checkWalletAction);
+    file->addAction(repairWalletAction);
     file->addSeparator();
     file->addAction(quitAction);
 
@@ -341,6 +380,8 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
+    toolbar->addAction(proofOfImageAction);
+    toolbar->addAction(messageAction);
 }
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
@@ -417,6 +458,10 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     signMessageAction->setEnabled(enabled);
     verifyMessageAction->setEnabled(enabled);
     addressBookAction->setEnabled(enabled);
+    proofOfImageAction->setEnabled(enabled);
+    messageAction->setEnabled(enabled);
+    checkWalletAction->setEnabled(enabled);
+    repairWalletAction->setEnabled(enabled);
 }
 
 void BitcoinGUI::createTrayIcon(bool fIsTestnet)
@@ -564,6 +609,16 @@ void BitcoinGUI::gotoVerifyMessageTab(QString addr)
     if (walletFrame) walletFrame->gotoVerifyMessageTab(addr);
 }
 
+void BitcoinGUI::gotoProofOfImagePage()
+{
+    if (walletFrame) walletFrame->gotoProofOfImagePage();
+}
+
+void BitcoinGUI::gotoMessagePage()
+{
+    if (walletFrame) walletFrame->gotoMessagePage();
+}
+
 void BitcoinGUI::setNumConnections(int count)
 {
     QString icon;
@@ -628,6 +683,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
 
         progressBarLabel->setVisible(false);
         progressBar->setVisible(false);
+        walletFrame->updatePlot();
     }
     else
     {
@@ -672,6 +728,10 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
     labelBlocksIcon->setToolTip(tooltip);
     progressBarLabel->setToolTip(tooltip);
     progressBar->setToolTip(tooltip);
+
+    //if GetBoolArg("-chart", false)
+    //    if (count > 0 && nTotalBlocks > 0 && count >= nTotalBlocks)
+    //        overviewPage->updatePlot();
 }
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, bool *ret)

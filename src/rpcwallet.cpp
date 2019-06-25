@@ -884,6 +884,29 @@ Value createmultisig(const Array& params, bool fHelp)
     return result;
 }
 
+Value addredeemscript(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 2)
+    {
+        string msg = "addredeemscript <redeemScript> [account]\n"
+            "Add a P2SH address with a specified redeemScript to the wallet.\n"
+            "If [account] is specified, assign address to [account].";
+        throw runtime_error(msg);
+    }
+
+    string strAccount;
+    if (params.size() > 1)
+        strAccount = AccountFromValue(params[1]);
+
+    // Construct using pay-to-script-hash:
+    vector<unsigned char> innerData = ParseHexV(params[0], "redeemScript");
+    CScript inner(innerData.begin(), innerData.end());
+    CScriptID innerID = inner.GetID();
+    pwalletMain->AddCScript(inner);
+
+    pwalletMain->SetAddressBookName(innerID, strAccount);
+    return CBitcoinAddress(innerID).ToString();
+}
 
 struct tallyitem
 {
@@ -1646,5 +1669,155 @@ Value listlockunspent(const Array& params, bool fHelp)
     }
 
     return ret;
+}
+
+// ppcoin: check wallet integrity
+Value checkwallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "checkwallet\n"
+            "Check wallet for integrity.\n");
+
+    int nMismatchSpent;
+    int nOrphansFound;
+    int64 nBalanceInQuestion;
+    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound, true);
+    Object result;
+    if (nMismatchSpent == 0)
+        result.push_back(Pair("wallet check passed", true));
+    else
+    {
+        result.push_back(Pair("mismatched spent coins", nMismatchSpent));
+        result.push_back(Pair("amount in question", ValueFromAmount(nBalanceInQuestion)));
+    }
+    return result;
+}
+
+// ppcoin: repair wallet
+Value repairwallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "repairwallet\n"
+            "Repair wallet if checkwallet reports any problem.\n");
+
+    int nMismatchSpent;
+    int nOrphansFound;
+    int64 nBalanceInQuestion;
+    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound);
+    Object result;
+    if (nMismatchSpent == 0)
+        result.push_back(Pair("wallet check passed", true));
+    else
+    {
+        result.push_back(Pair("mismatched spent coins", nMismatchSpent));
+        result.push_back(Pair("amount affected by repair", ValueFromAmount(nBalanceInQuestion)));
+    }
+    return result;
+}
+
+// zapwallettxes
+Value zapwallettxes(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() > 0)
+    throw runtime_error("zapwallettxes\n"
+          "Delete all wallet transactions and only recover those parts of the blockchain through -rescan on startup\n");
+
+  std::vector<CWalletTx> vWtx;
+  Object result;
+
+  const char *mess="Zapping all transactions from wallet ...\n";
+  printf("%s",mess); // to debug.log
+
+  pwalletMain = new CWallet("wallet.dat");
+  int nZapWalletRet = pwalletMain->ZapWalletTx(vWtx);
+  if (nZapWalletRet != 0)
+  {
+    mess="Error loading wallet.dat: Wallet corrupted\n";
+    printf("%s",mess);
+    return(mess);
+  }
+
+  delete pwalletMain;
+  pwalletMain = NULL;
+
+  mess="Loading wallet...\n";
+  printf("%s",mess);
+
+  bool fFirstRun = true;
+  pwalletMain = new CWallet("wallet.dat");
+
+
+  int nLoadWalletRet = pwalletMain->LoadWallet(fFirstRun);
+  if (nLoadWalletRet != 0)
+  {
+    if (nLoadWalletRet == 1)
+    {
+      mess="Error loading wallet.dat: Wallet corrupted\n";
+      printf("%s",mess);
+      return(mess);
+    }
+    else if (nLoadWalletRet == 2)
+    {
+      mess="Warning: error reading wallet.dat! All keys read correctly, but transaction data or address book entries might be missing or incorrect.\n";
+      printf("%s",mess);
+    }
+    else if (nLoadWalletRet == 3)
+    {
+      mess="Error loading wallet.dat: Wallet requires newer version of Bitcoin-scrypt\n";
+      printf("%s",mess);
+      return(mess);
+    }
+    else if (nLoadWalletRet == 4)
+    {
+      mess="Wallet needed to be rewritten: restart Slimcoin to complete\n";
+      printf("%s",mess);
+      return(mess);
+    }
+    else
+    {
+      mess="Unknown error loading wallet.dat\n";
+      printf("%s",mess);
+      return(mess);
+    } 
+  }
+  
+  mess="Wallet loaded...\n";
+  printf("%s",mess);
+
+  mess="Loaded lables...\n";
+  printf("%s",mess);
+
+  // Restore wallet transaction metadata
+  BOOST_FOREACH(const CWalletTx& wtxOld, vWtx)
+  {
+    uint256 hash = wtxOld.GetHash();
+    std::map<uint256, CWalletTx>::iterator mi = pwalletMain->mapWallet.find(hash);
+    if (mi != pwalletMain->mapWallet.end())
+    {
+      const CWalletTx* copyFrom = &wtxOld;
+      CWalletTx* copyTo = &mi->second;
+      copyTo->mapValue = copyFrom->mapValue;
+      copyTo->vOrderForm = copyFrom->vOrderForm;
+      copyTo->nTimeReceived = copyFrom->nTimeReceived;
+      copyTo->nTimeSmart = copyFrom->nTimeSmart;
+      copyTo->fFromMe = copyFrom->fFromMe;
+      copyTo->strFromAccount = copyFrom->strFromAccount;
+      copyTo->nOrderPos = copyFrom->nOrderPos;
+      copyTo->WriteToDisk();
+    }
+  }
+  mess="scanning for transactions...\n";
+  printf("%s",mess);
+
+  pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
+  pwalletMain->ReacceptWalletTransactions();
+  mess="Please restart your wallet.\n";
+  printf("%s",mess);
+
+  mess="Zap Wallet Finished.\nPlease restart your wallet for changes to take effect.\n";
+
+  return (mess);
 }
 

@@ -66,6 +66,11 @@ void SendCoinsEntry::on_payTo_textChanged(const QString &address)
         ui->addAsLabel->setText(associatedLabel);
 }
 
+void SendCoinsEntry::on_inscription_textChanged(const QString &inscription)
+{
+    updateInscription(inscription);
+}
+
 void SendCoinsEntry::setModel(WalletModel *model)
 {
     this->model = model;
@@ -88,6 +93,7 @@ void SendCoinsEntry::clear()
     ui->payTo->clear();
     ui->addAsLabel->clear();
     ui->payAmount->clear();
+    ui->inscriptionText->clear();
     ui->payTo->setFocus();
     // update the display unit, to not use the default ("BTC")
     updateDisplayUnit();
@@ -134,6 +140,7 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     rv.address = ui->payTo->text();
     rv.label = ui->addAsLabel->text();
     rv.amount = ui->payAmount->value();
+    rv.inscription = ui->inscriptionText->text();
 
     return rv;
 }
@@ -153,12 +160,21 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
     ui->payTo->setText(value.address);
     ui->addAsLabel->setText(value.label);
     ui->payAmount->setValue(value.amount);
+    // inscriptiom
+    ui->inscriptionText->setText(value.inscription);
+    ui->inscriptionText->setVisible(true);
+    ui->inscriptionLabel->setVisible(true);
 }
 
 void SendCoinsEntry::setAddress(const QString &address)
 {
     ui->payTo->setText(address);
     ui->payAmount->setFocus();
+}
+
+void SendCoinsEntry::setInscription(const QString &inscription)
+{
+    ui->inscriptionText->setText("ni://example.org/sha-256;5AbXdpz5DcaYXCh9l3eI9ruBosiL5XDU3rxBbBaUO70");
 }
 
 bool SendCoinsEntry::isClear()
@@ -179,3 +195,43 @@ void SendCoinsEntry::updateDisplayUnit()
         ui->payAmount->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     }
 }
+
+bool SendCoinsEntry::updateInscription(const QString &inscription)
+{
+    if(!model)
+        return false;
+
+    ui->inscriptionText->setText(inscription);
+    return true;
+}
+
+    //    QString textOP = ui->msgLabel->text();
+    //    if (textOP.length() > int(MAX_OP_RETURN_RELAY))
+    //    {
+    //        QMessageBox::information(NULL, tr("Wallet Message"), tr("Inscriptions are limited to a maximum of 100 characters."), QMessageBox::Yes , QMessageBox::Yes);
+    //        return;
+    //    }
+
+    /*
+     * Handle txReference (OP_RETURN) text
+    */
+
+
+//    QList<SendCoinsRecipient> recipients;
+//    SendCoinsRecipient rcptmp;
+//    // Payment request
+//    if (rcptmp.paymentRequest.IsInitialized())
+//        return ;
+//    /* Not required
+//    rcptmp.typeInd = AddressTableModel::AT_Normal;
+//    */
+//    rcptmp.address = addrOP;
+//    rcptmp.label = "inscription";
+//    rcptmp.amount = /*DUST_HARD_LIMIT*/ 1000 /*MIN_OP_RETURN_TX_FEE*/;
+//    rcptmp.message = textOP;
+//    recipients.append(rcptmp);
+
+
+    // FIXME: Add txreference
+    // prepareStatus = model->prepareTransaction(currentTransaction, txreference, ctrl);
+

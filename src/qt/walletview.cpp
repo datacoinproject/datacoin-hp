@@ -6,6 +6,7 @@
  */
 #include "walletview.h"
 #include "bitcoingui.h"
+#include "bitcoinunits.h"
 #include "transactiontablemodel.h"
 #include "addressbookpage.h"
 #include "sendcoinsdialog.h"
@@ -15,6 +16,8 @@
 #include "optionsmodel.h"
 #include "transactionview.h"
 #include "overviewpage.h"
+#include "proofofimage.h"
+#include "messagepage.h"
 #include "askpassphrasedialog.h"
 #include "ui_interface.h"
 
@@ -61,11 +64,17 @@ WalletView::WalletView(QWidget *parent, BitcoinGUI *_gui):
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(gui);
 
+    proofOfImagePage = new ProofOfImage(gui);
+
+    messagePage = new MessagePage(gui);
+
     addWidget(overviewPage);
     addWidget(transactionsPage);
     addWidget(addressBookPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
+    addWidget(proofOfImagePage);
+    addWidget(messagePage);
 
     // Clicking on a transaction on the overview page simply sends you to transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
@@ -103,6 +112,7 @@ void WalletView::setClientModel(ClientModel *clientModel)
         overviewPage->setClientModel(clientModel);
         addressBookPage->setOptionsModel(clientModel->getOptionsModel());
         receiveCoinsPage->setOptionsModel(clientModel->getOptionsModel());
+        messagePage->setClientModel(clientModel);
     }
 }
 
@@ -121,6 +131,7 @@ void WalletView::setWalletModel(WalletModel *walletModel)
         receiveCoinsPage->setModel(walletModel->getAddressTableModel());
         sendCoinsPage->setModel(walletModel);
         signVerifyMessageDialog->setModel(walletModel);
+        messagePage->setModel(walletModel);
 
         setEncryptionStatus();
         connect(walletModel, SIGNAL(encryptionStatusChanged(int)), gui, SLOT(setEncryptionStatus(int)));
@@ -166,6 +177,18 @@ void WalletView::gotoAddressBookPage()
 {
     gui->getAddressBookAction()->setChecked(true);
     setCurrentWidget(addressBookPage);
+}
+
+void WalletView::gotoProofOfImagePage()
+{
+    gui->getProofOfImageAction()->setChecked(true);
+    setCurrentWidget(proofOfImagePage);
+}
+
+void WalletView::gotoMessagePage()
+{
+    gui->getMessageAction()->setChecked(true);
+    setCurrentWidget(messagePage);
 }
 
 void WalletView::gotoReceiveCoinsPage()
@@ -273,3 +296,85 @@ void WalletView::unlockWallet()
         dlg.exec();
     }
 }
+
+/*
+void WalletView::encryptWallet(bool status)
+{
+    if(!walletModel)
+        return;
+    AskPassphraseDialog dlg(status ? AskPassphraseDialog::Encrypt:
+                                     AskPassphraseDialog::Decrypt, this);
+    dlg.setModel(walletModel);
+    dlg.exec();
+
+    setEncryptionStatus(walletModel->getEncryptionStatus());
+}
+*/
+
+void WalletView::checkWallet()
+{
+
+    int nMismatchSpent;
+    int64 nBalanceInQuestion;
+    int nOrphansFound;
+
+    if(!walletModel)
+        return;
+
+    // Check the wallet as requested by user
+    walletModel->checkWallet(nMismatchSpent, nBalanceInQuestion, nOrphansFound);
+
+    if (nMismatchSpent == 0 && nOrphansFound == 0)
+        gui->message(tr("Check Wallet Information"),
+                tr("Wallet passed integrity test!\n"
+                   "Nothing found to fix.")
+                  ,CClientUIInterface::MSG_INFORMATION);
+  else
+       gui->message(tr("Check Wallet Information"),
+               tr("Wallet failed integrity test!\n\n"
+                  "Mismatched coin(s) found: %1.\n"
+                  "Amount in question: %2.\n"
+                  "Orphans found: %3.\n\n"
+                  "Please backup wallet and run repair wallet.\n")
+                        .arg(nMismatchSpent)
+                        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion,true))
+                        .arg(nOrphansFound)
+                 ,CClientUIInterface::MSG_WARNING);
+}
+
+void WalletView::repairWallet()
+{
+    int nMismatchSpent = 0;
+    int64 nBalanceInQuestion;
+    int nOrphansFound;
+
+    if(!walletModel)
+        return;
+
+    // Repair the wallet as requested by user
+    walletModel->repairWallet(nMismatchSpent, nBalanceInQuestion, nOrphansFound);
+
+    if (nMismatchSpent == 0 && nOrphansFound == 0)
+       gui->message(tr("Repair Wallet Information"),
+               tr("Wallet passed integrity test!\n"
+                  "Nothing found to fix.")
+                ,CClientUIInterface::MSG_INFORMATION);
+    else
+       gui->message(tr("Repair Wallet Information"),
+               tr("Wallet failed integrity test and has been repaired!\n"
+                  "Mismatched coin(s) found: %1\n"
+                  "Amount affected by repair: %2\n"
+                  "Orphans removed: %3\n")
+                        .arg(nMismatchSpent)
+                        .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), nBalanceInQuestion,true))
+                        .arg(nOrphansFound)
+                  ,CClientUIInterface::MSG_WARNING);
+}
+
+void WalletView::updatePlot()
+{
+    // miningPage->updatePlot();
+    overviewPage->updatePlot();
+}
+
+

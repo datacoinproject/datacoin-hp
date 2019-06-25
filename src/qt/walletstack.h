@@ -23,6 +23,8 @@ class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
+class ProofOfImagePage;
+class MessagePage;
 
 class CWalletManager;
 
@@ -40,6 +42,7 @@ QT_END_NAMESPACE
 class WalletStack : public QStackedWidget
 {
     Q_OBJECT
+
 public:
     explicit WalletStack(QWidget *parent = 0);
     ~WalletStack();
@@ -74,6 +77,11 @@ public slots:
     /** Switch to address book page */
     void gotoAddressBookPage();
     /** Switch to receive coins page */
+    /** Switch to data page */
+    void gotoProofOfImagePage();
+    /** Switch to message page */
+    void gotoMessagePage();
+
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
@@ -87,6 +95,8 @@ public slots:
     void encryptWallet(bool status);
     /** Backup the wallet */
     void backupWallet();
+    void checkWallet();
+    void repairWallet();
     /** Change encrypted wallet passphrase */
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
@@ -97,6 +107,9 @@ public slots:
      @see WalletModel::EncryptionStatus
      */
     void setEncryptionStatus();
+
+    /** Update the plot on the overview (home) page */
+    void updatePlot();
 };
 
 #endif // WALLETSTACK_H

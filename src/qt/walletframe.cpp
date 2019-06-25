@@ -39,6 +39,7 @@ void WalletFrame::setClientModel(ClientModel *clientModel)
 {
     this->clientModel = clientModel;
     walletStack->setClientModel(clientModel);
+    walletStack->updatePlot();
 }
 
 bool WalletFrame::addWallet(const QString& name, WalletModel *walletModel)
@@ -88,6 +89,16 @@ void WalletFrame::gotoHistoryPage()
     walletStack->gotoHistoryPage();
 }
 
+void WalletFrame::gotoProofOfImagePage()
+{
+    walletStack->gotoProofOfImagePage();
+}
+
+void WalletFrame::gotoMessagePage()
+{
+    walletStack->gotoMessagePage();
+}
+
 void WalletFrame::gotoAddressBookPage()
 {
     WalletView *walletView = currentWalletView();
@@ -133,6 +144,20 @@ void WalletFrame::backupWallet()
         walletView->backupWallet();
 }
 
+void WalletFrame::checkWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->checkWallet();
+}
+
+void WalletFrame::repairWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->repairWallet();
+}
+
 void WalletFrame::changePassphrase()
 {
     WalletView *walletView = currentWalletView();
@@ -158,3 +183,9 @@ WalletView *WalletFrame::currentWalletView()
 {
     return qobject_cast<WalletView*>(walletStack->currentWidget());
 }
+
+void WalletFrame::updatePlot()
+{
+    walletStack->updatePlot();
+}
+

@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = datacoin-qt
 macx:TARGET = "Datacoin-HP-Qt"
-VERSION = 0.8.3
+VERSION = 0.8.6
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE QT_NO_PRINTER BOOST_NO_CXX11_SCOPED_ENUMS ENABLE_PRECOMPILED_HEADERS=OFF
@@ -235,6 +235,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/aboutdialog.h \
     src/qt/editaddressdialog.h \
     src/qt/bitcoinaddressvalidator.h \
+    src/qt/messagepage.h \
+    src/qt/proofofimage.h \
     src/alert.h \
     src/addrman.h \
     src/base58.h \
@@ -285,6 +287,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/walletframe.h \
     src/bitcoinrpc.h \
     src/qt/overviewpage.h \
+    src/qt/qcustomplot.h \
     src/qt/csvmodelwriter.h \
     src/crypter.h \
     src/qt/sendcoinsentry.h \
@@ -308,7 +311,9 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/splashscreen.h \
     src/qt/blockexplorer.h \
     src/prime.h \
-    src/checkpointsync.h
+    src/checkpointsync.h \
+    src/smalldata.h \
+    src/ecies/ecies.h
 
 SOURCES += src/qt/bitcoin.cpp \
     src/qt/bitcoingui.cpp \
@@ -323,6 +328,8 @@ SOURCES += src/qt/bitcoin.cpp \
     src/qt/aboutdialog.cpp \
     src/qt/editaddressdialog.cpp \
     src/qt/bitcoinaddressvalidator.cpp \
+    src/qt/messagepage.cpp \
+    src/qt/proofofimage.cpp \
     src/alert.cpp \
     src/version.cpp \
     src/sync.cpp \
@@ -357,6 +364,7 @@ SOURCES += src/qt/bitcoin.cpp \
     src/qt/walletstack.cpp \
     src/qt/walletframe.cpp \
     src/bitcoinrpc.cpp \
+    src/rpccrypto.cpp \
     src/rpcdump.cpp \
     src/rpcnet.cpp \
     src/rpcmining.cpp \
@@ -364,6 +372,7 @@ SOURCES += src/qt/bitcoin.cpp \
     src/rpcblockchain.cpp \
     src/rpcrawtransaction.cpp \
     src/qt/overviewpage.cpp \
+    src/qt/qcustomplot.cpp \
     src/qt/csvmodelwriter.cpp \
     src/crypter.cpp \
     src/qt/sendcoinsentry.cpp \
@@ -381,7 +390,11 @@ SOURCES += src/qt/bitcoin.cpp \
     src/qt/splashscreen.cpp \
     src/qt/blockexplorer.cpp \
     src/prime.cpp \
-    src/checkpointsync.cpp
+    src/checkpointsync.cpp \
+    src/smalldata.cpp \
+    src/ecies/ecies.c \
+    src/ecies/kdf.c \
+    src/ecies/secure.c
 
 RESOURCES += src/qt/bitcoin.qrc
 
@@ -397,6 +410,8 @@ FORMS += src/qt/forms/sendcoinsdialog.ui \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
     src/qt/forms/blockexplorer.ui \
+    src/qt/forms/messagepage.ui \
+    src/qt/forms/proofofimage.ui \
     src/qt/forms/optionsdialog.ui
 
 contains(USE_QRCODE, 1) {

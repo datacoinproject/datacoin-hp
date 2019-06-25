@@ -250,7 +250,7 @@ Value getwork(const Array& params, bool fHelp)
     {
         // Parse parameters
         vector<unsigned char> vchData = ParseHex(params[0].get_str());
-        printf("got getwork with vchData.size() == %lld\n", vchData.size());
+        printf("got getwork with vchData.size() == %ld\n", vchData.size());
         if (vchData.size() != 128 && vchData.size() != 256)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter");
         CBlock* pdata = (CBlock*)&vchData[0];

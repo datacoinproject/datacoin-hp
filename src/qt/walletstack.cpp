@@ -96,6 +96,20 @@ void WalletStack::gotoAddressBookPage()
         i.value()->gotoAddressBookPage();
 }
 
+void WalletStack::gotoProofOfImagePage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoProofOfImagePage();
+}
+
+void WalletStack::gotoMessagePage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoMessagePage();
+}
+
 void WalletStack::gotoReceiveCoinsPage()
 {
     QMap<QString, WalletView*>::const_iterator i;
@@ -134,6 +148,18 @@ void WalletStack::backupWallet()
     if (walletView) walletView->backupWallet();
 }
 
+void WalletStack::checkWallet()
+{
+    WalletView *walletView = (WalletView*)currentWidget();
+    if (walletView) walletView->checkWallet();
+}
+
+void WalletStack::repairWallet()
+{
+    WalletView *walletView = (WalletView*)currentWidget();
+    if (walletView) walletView->repairWallet();
+}
+
 void WalletStack::changePassphrase()
 {
     WalletView *walletView = (WalletView*)currentWidget();
@@ -158,4 +184,13 @@ void WalletStack::setCurrentWallet(const QString& name)
     WalletView *walletView = mapWalletViews.value(name);
     setCurrentWidget(walletView);
     walletView->setEncryptionStatus();
+}
+
+void WalletStack::updatePlot()
+{
+    //we can't be sure that the view has loaded, so this needs
+    //to be loaded in a manner that fails gracefully
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->updatePlot();
 }

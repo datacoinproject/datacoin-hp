@@ -442,6 +442,18 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
     }
 }
 
+void WalletModel::checkWallet(int nMismatchSpent, qint64 nBalanceInQuestion, int nOrphansFound)
+{
+    bool fCheckOnly = true;
+    wallet->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound, fCheckOnly);
+}
+
+void WalletModel::repairWallet(int nMismatchSpent, qint64 nBalanceInQuestion, int nOrphansFound)
+{
+    bool fCheckOnly = false;
+    wallet->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound, fCheckOnly);
+}
+
 bool WalletModel::isLockedCoin(uint256 hash, unsigned int n) const
 {
     return wallet->IsLockedCoin(hash, n);
