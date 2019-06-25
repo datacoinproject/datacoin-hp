@@ -52,7 +52,9 @@ public slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
-
+    /** Switch to message page */
+    void gotoMessagePage();
+    /** Switch to data page */
     void gotoProofOfImagePage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
@@ -64,6 +66,8 @@ public slots:
     void encryptWallet(bool status);
     /** Backup the wallet */
     void backupWallet();
+    void checkWallet();
+    void repairWallet();
     /** Change encrypted wallet passphrase */
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */

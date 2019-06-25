@@ -121,7 +121,41 @@ std::string HexBits(unsigned int nBits)
     return HexStr(BEGIN(uBits.cBits), END(uBits.cBits));
 }
 
+//
+// Utilities: convert hex-encoded Values
+// (throws error if not hex).
+//
+uint256 ParseHashV(const Value& v, string strName)
+{
+    string strHex;
+    if (v.type() == str_type)
+        strHex = v.get_str();
+    if (!IsHex(strHex)) // Note: IsHex("") is false
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strName+" must be hexadecimal string (not '"+strHex+"')");
+    uint256 result;
+    result.SetHex(strHex);
+    return result;
+}
 
+uint256 ParseHashO(const Object& o, string strKey)
+{
+    return ParseHashV(find_value(o, strKey), strKey);
+}
+
+vector<unsigned char> ParseHexV(const Value& v, string strName)
+{
+    string strHex;
+    if (v.type() == str_type)
+        strHex = v.get_str();
+    if (!IsHex(strHex))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strName+" must be hexadecimal string (not '"+strHex+"')");
+    return ParseHex(strHex);
+}
+
+vector<unsigned char> ParseHexO(const Object& o, string strKey)
+{
+    return ParseHexV(find_value(o, strKey), strKey);
+}
 
 ///
 /// Note: This interface may still be subject to change.
@@ -243,6 +277,7 @@ static const CRPCCommand vRPCCommands[] =
     { "sendmany",               &sendmany,               false,     false },
     { "addmultisigaddress",     &addmultisigaddress,     false,     false },
     { "createmultisig",         &createmultisig,         true,      true  },
+    { "addredeemscript",        &addredeemscript,        false,     false },
     { "getrawmempool",          &getrawmempool,          true,      false },
     { "getblock",               &getblock,               false,     false },
     { "getblockhash",           &getblockhash,           false,     false },
@@ -262,21 +297,29 @@ static const CRPCCommand vRPCCommands[] =
     { "getcheckpoint",          &getcheckpoint,          true,      false },
     { "sendcheckpoint",         &sendcheckpoint,         true,      false },
     { "enforcecheckpoint",      &enforcecheckpoint,      true,      false },
+    { "encryptmessage",         &encryptmessage,         false,     false },
+    { "decryptmessage",         &decryptmessage,         false,     false },
+    { "encryptdata",            &encryptdata,            false,     false },
+    { "decryptdata",            &decryptdata,            false,     false },
     { "makekeypair",            &makekeypair,            true,      false },
     { "sendalert",              &sendalert,              true,      false },
     { "listunspent",            &listunspent,            false,     false },
     { "getrawtransaction",      &getrawtransaction,      false,     false },
     { "createrawtransaction",   &createrawtransaction,   false,     false },
     { "decoderawtransaction",   &decoderawtransaction,   false,     false },
+    { "decodescript",           &decodescript,           false,     false },
     { "signrawtransaction",     &signrawtransaction,     false,     false },
     { "sendrawtransaction",     &sendrawtransaction,     false,     false },
     { "gettxoutsetinfo",        &gettxoutsetinfo,        true,      false },
     { "gettxout",               &gettxout,               true,      false },
+    { "getinscription",         &getinscription,         true,      false },
     { "lockunspent",            &lockunspent,            false,     false },
     { "listlockunspent",        &listlockunspent,        false,     false },
     { "listprimerecords",       &listprimerecords,       false,     false },
     { "listtopprimes",          &listtopprimes,          false,     false },
-};
+    { "checkwallet",            &checkwallet,            false,     false },
+    { "repairwallet",           &repairwallet,           false,     false },
+    { "zapwallettxes",          &zapwallettxes,          false,     false }};
 
 CRPCTable::CRPCTable()
 {

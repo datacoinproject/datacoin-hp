@@ -68,8 +68,8 @@ void ProofOfImage::on_createPushButton_clicked()
 
     ui->lineEdit->setText(QString::fromStdString(addr));
 
-    /* FIXME: GJH calculate fee based on imageContents.size() */
-    int64 nAmount = 0.001 * COIN; // 0.001 DTC Fee
+    /* FIXME: GJH fee is 0.05 DTC per 1Kb of data. */
+    int64 nAmount = int((0.05 * imageContents.size()) * COIN);
     
     // Wallet comments
     CWalletTx wtx;

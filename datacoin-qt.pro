@@ -235,6 +235,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/aboutdialog.h \
     src/qt/editaddressdialog.h \
     src/qt/bitcoinaddressvalidator.h \
+    src/qt/messagepage.h \
     src/qt/proofofimage.h \
     src/alert.h \
     src/addrman.h \
@@ -308,7 +309,9 @@ HEADERS += src/qt/bitcoingui.h \
     src/limitedmap.h \
     src/qt/splashscreen.h \
     src/prime.h \
-    src/checkpointsync.h
+    src/checkpointsync.h \
+    src/smalldata.h \
+    src/ecies/ecies.h
 
 SOURCES += src/qt/bitcoin.cpp \
     src/qt/bitcoingui.cpp \
@@ -323,6 +326,7 @@ SOURCES += src/qt/bitcoin.cpp \
     src/qt/aboutdialog.cpp \
     src/qt/editaddressdialog.cpp \
     src/qt/bitcoinaddressvalidator.cpp \
+    src/qt/messagepage.cpp \
     src/qt/proofofimage.cpp \
     src/alert.cpp \
     src/version.cpp \
@@ -358,6 +362,7 @@ SOURCES += src/qt/bitcoin.cpp \
     src/qt/walletstack.cpp \
     src/qt/walletframe.cpp \
     src/bitcoinrpc.cpp \
+    src/rpccrypto.cpp \
     src/rpcdump.cpp \
     src/rpcnet.cpp \
     src/rpcmining.cpp \
@@ -381,7 +386,11 @@ SOURCES += src/qt/bitcoin.cpp \
     src/txdb.cpp \
     src/qt/splashscreen.cpp \
     src/prime.cpp \
-    src/checkpointsync.cpp
+    src/checkpointsync.cpp \
+    src/smalldata.cpp \
+    src/ecies/ecies.c \
+    src/ecies/kdf.c \
+    src/ecies/secure.c
 
 RESOURCES += src/qt/bitcoin.qrc
 
@@ -396,7 +405,8 @@ FORMS += src/qt/forms/sendcoinsdialog.ui \
     src/qt/forms/sendcoinsentry.ui \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
-   src/qt/forms/proofofimage.ui \
+    src/qt/forms/messagepage.ui \
+    src/qt/forms/proofofimage.ui \
     src/qt/forms/optionsdialog.ui
 
 contains(USE_QRCODE, 1) {

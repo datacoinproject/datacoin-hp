@@ -28,6 +28,7 @@ public:
     QString address;
     QString label;
     qint64 amount;
+    QString inscription;
 };
 
 /** Interface to Bitcoin wallet from Qt view code. */
@@ -94,6 +95,9 @@ public:
     bool changePassphrase(const SecureString &oldPass, const SecureString &newPass);
     // Wallet backup
     bool backupWallet(const QString &filename);
+
+    void checkWallet(int nMismatchSpent, qint64 nBalanceInQuestion, int nOrphansFound);
+    void repairWallet(int nMismatchSpent, qint64 nBalanceInQuestion, int nOrphansFound);
 
     // RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext

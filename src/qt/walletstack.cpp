@@ -103,6 +103,12 @@ void WalletStack::gotoProofOfImagePage()
         i.value()->gotoProofOfImagePage();
 }
 
+void WalletStack::gotoMessagePage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoMessagePage();
+}
 
 void WalletStack::gotoReceiveCoinsPage()
 {
@@ -140,6 +146,18 @@ void WalletStack::backupWallet()
 {
     WalletView *walletView = (WalletView*)currentWidget();
     if (walletView) walletView->backupWallet();
+}
+
+void WalletStack::checkWallet()
+{
+    WalletView *walletView = (WalletView*)currentWidget();
+    if (walletView) walletView->checkWallet();
+}
+
+void WalletStack::repairWallet()
+{
+    WalletView *walletView = (WalletView*)currentWidget();
+    if (walletView) walletView->repairWallet();
 }
 
 void WalletStack::changePassphrase()

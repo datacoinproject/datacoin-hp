@@ -10,6 +10,8 @@
 #include "ui_interface.h"
 #include "base58.h"
 #include "coincontrol.h"
+#include "smalldata.h"
+
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace std;
@@ -86,6 +88,22 @@ bool CWallet::AddCScript(const CScript& redeemScript)
         return true;
     return CWalletDB(strWalletFile).WriteCScript(Hash160(redeemScript), redeemScript);
 }
+
+bool CWallet::Lock()
+{
+    if (IsLocked())
+        return true;
+
+    if (fDebug)
+        printf("Locking wallet.\n");
+
+    {
+        LOCK(cs_wallet);
+        CWalletDB wdb(strWalletFile);
+
+    }
+    return Lock();
+};
 
 bool CWallet::Unlock(const SecureString& strWalletPassphrase)
 {
@@ -907,8 +925,88 @@ void CWallet::ResendWalletTransactions()
     }
 }
 
+/* This is how CLAMs does it ... */
+
+void CWallet::SearchOPRETURNTransactions(uint256 hash, std::vector<std::pair<std::string, int> >& vTxResults)
+{
+    int blockstogoback = pindexBest->nHeight - 362500;
+    std::string matchingHash = "face " + hash.GetHex();
+
+    const CBlockIndex* pindexFirst = pindexBest;
+    for (int i = 0; pindexFirst && i < blockstogoback; i++) {
+
+        CBlock block;
+        block.ReadFromDisk(pindexFirst);
+
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+            std::string txmsg;
+            std::string addr;
+            bool isBroadcast;
+            CTransaction ctx = tx;
+            if ( GetTxMessage(ctx, txmsg, addr, isBroadcast) ) {
+                if (txmsg == matchingHash) {
+                    vTxResults.push_back(
+                                std::make_pair(tx.GetHash().GetHex(), pindexFirst->nTime) );
+                }
+            }
+        }
+
+        pindexFirst = pindexFirst->pprev;
+    }
+    return;
+}
+
+void CWallet::GetTxMessages(std::vector<std::pair<std::string, int> >& vTxResults)
+{
+    // int blockstogoback = pindexBest->nHeight - /*36*/2500;
+    int blockstogoback = pindexBest->nHeight - 362500;
+
+    const CBlockIndex* pindexFirst = pindexBest;
+    for (int i = 0; pindexFirst && i < blockstogoback; i++) {
+
+        CBlock block;
+        block.ReadFromDisk(pindexFirst);
+
+        BOOST_FOREACH (const CTransaction& tx, block.vtx)
+        {
+            std::string txmsg;
+            std::string addr;
+            bool isBroadcast;
+            CTransaction ctx = tx;
+            if ( GetTxMessage(ctx, txmsg, addr, isBroadcast) ) {
+                vTxResults.push_back( std::make_pair(txmsg, pindexFirst->nTime) );
+            }
+        }
+
+        pindexFirst = pindexFirst->pprev;
+    }
+    return;
+}
 
 
+void CWallet::GetMyTxMessages(std::vector<std::pair<std::string, int> >& vTxResults)
+{
+    LOCK(cs_wallet);
+    for(std::map<uint256, CWalletTx>::iterator it = this->mapWallet.begin(); it != this->mapWallet.end(); ++it)
+    {
+        CWalletTx &tx = it->second;
+        if(!mapBlockIndex.count(tx.hashBlock))
+            continue;
+
+        CBlockIndex *pindex = mapBlockIndex[tx.hashBlock];
+        if(!pindex)
+            continue;
+
+        std::string txmsg;
+        std::string addr;
+        bool isBroadcast;
+        CTransaction ctx = tx;
+        if ( GetTxMessage(ctx, txmsg, addr, isBroadcast) ) {
+            vTxResults.push_back( std::make_pair(txmsg, pindex->nTime) );
+        }
+    }
+}
 
 
 
@@ -1526,6 +1624,29 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
     return DB_LOAD_OK;
 }
 
+int CWallet::ZapWalletTx(std::vector<CWalletTx>& vWtx)
+{
+    if (!fFileBacked)
+        return 0;
+    int nZapWalletTxRet = CWalletDB(strWalletFile,"cr+").ZapWalletTx(this, vWtx);
+    if (nZapWalletTxRet == 5)
+    {
+        if (CDB::Rewrite(strWalletFile, "\x04pool"))
+        {
+            LOCK(cs_wallet);
+            setKeyPool.clear();
+            // Note: can't top-up keypool here, because wallet is locked.
+            // User will be prompted to unlock wallet the next operation
+            // that requires a new key.
+        }
+    }
+
+    if (nZapWalletTxRet != 0)
+        return nZapWalletTxRet;
+
+    return 0;
+}
+
 
 bool CWallet::SetAddressBookName(const CTxDestination& address, const string& strName)
 {
@@ -1976,3 +2097,75 @@ void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts)
     }
 }
 
+// check 'spent' consistency between wallet and txindex
+// fix wallet spent state according to txindex
+// remove orphan Coinbase and Coinstake
+
+void CWallet::FixSpentCoins(int& nMismatchFound, int64& nBalanceInQuestion, int& nOrphansFound, bool fCheckOnly)
+{
+    nMismatchFound = 0;
+    nBalanceInQuestion = 0;
+    nOrphansFound = 0;
+
+    LOCK(cs_wallet);
+    vector<CWalletTx*> vCoins;
+    vCoins.reserve(mapWallet.size());
+    for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        vCoins.push_back(&(*it).second);
+
+    /*
+    CTxDB txdb("r");
+    BOOST_FOREACH(CWalletTx* pcoin, vCoins)
+    {
+        uint256 hash = pcoin->GetHash();
+        // Find the corresponding transaction index
+        CTxIndex txindex;
+        if (!txdb.ReadTxIndex(hash, txindex) && !(pcoin->IsCoinBase() || pcoin->IsCoinStake()))
+            continue;
+
+        for (unsigned int n=0; n < pcoin->vout.size(); n++)
+        {
+            bool fUpdated = false;
+            if (IsMine(pcoin->vout[n]) && pcoin->IsSpent(n) && (txindex.vSpent.size() <= n || txindex.vSpent[n].IsNull()))
+            {
+                printf("FixSpentCoins found lost coin %scap %s[%d], %s\n",
+                    FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                nMismatchFound++;
+                nBalanceInQuestion += pcoin->vout[n].nValue;
+                if (!fCheckOnly)
+                {
+                    fUpdated = true;
+                    pcoin->MarkUnspent(n);
+                    pcoin->WriteToDisk();
+                }
+            }
+            else if (IsMine(pcoin->vout[n]) && !pcoin->IsSpent(n) && (txindex.vSpent.size() > n && !txindex.vSpent[n].IsNull()))
+            {
+                printf("FixSpentCoins found spent coin %scap %s[%d], %s\n",
+                    FormatMoney(pcoin->vout[n].nValue).c_str(), hash.ToString().c_str(), n, fCheckOnly? "repair not attempted" : "repairing");
+                nMismatchFound++;
+                nBalanceInQuestion += pcoin->vout[n].nValue;
+                if (!fCheckOnly)
+                {
+                    fUpdated = true;
+                    pcoin->MarkSpent(n);
+                    pcoin->WriteToDisk();
+                }
+            }
+            if (fUpdated)
+                NotifyTransactionChanged(this, hash, CT_UPDATED);
+        }
+
+        if(pcoin->IsCoinBase() && pcoin->GetDepthInMainChain() <= 0)
+        {
+           nOrphansFound++;
+           if (!fCheckOnly)
+           {
+             EraseFromWallet(hash);
+             NotifyTransactionChanged(this, hash, CT_DELETED);
+           }
+           printf("FixSpentCoins %s orphaned generation tx %s\n", fCheckOnly ? "found" : "removed", hash.ToString().c_str());
+        }
+     }
+     */
+}

@@ -126,6 +126,11 @@ public:
 extern const CRPCTable tableRPC;
 extern CReserveKey* pMiningKey;
 
+extern uint256 ParseHashV(const json_spirit::Value& v, std::string strName);
+extern uint256 ParseHashO(const json_spirit::Object& o, std::string strKey);
+extern std::vector<unsigned char> ParseHexV(const json_spirit::Value& v, std::string strName);
+extern std::vector<unsigned char> ParseHexO(const json_spirit::Object& o, std::string strKey);
+
 extern int64 nWalletUnlockTime;
 extern int64 AmountFromValue(const json_spirit::Value& value);
 extern json_spirit::Value ValueFromAmount(int64 amount);
@@ -178,6 +183,7 @@ extern json_spirit::Value sendfrom(const json_spirit::Array& params, bool fHelp)
 extern json_spirit::Value sendmany(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addmultisigaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createmultisig(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addredeemscript(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listreceivedbyaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listreceivedbyaccount(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listtransactions(const json_spirit::Array& params, bool fHelp);
@@ -200,8 +206,10 @@ extern json_spirit::Value lockunspent(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value listlockunspent(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createrawtransaction(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value decoderawtransaction(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value decodescript(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value signrawtransaction(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendrawtransaction(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getinscription(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getblockcount(const json_spirit::Array& params, bool fHelp); // in rpcblockchain.cpp
 extern json_spirit::Value getdifficulty(const json_spirit::Array& params, bool fHelp);
@@ -213,5 +221,15 @@ extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool
 extern json_spirit::Value gettxout(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listprimerecords(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listtopprimes(const json_spirit::Array& params, bool fHelp);
+
+/* in rpcdump.cpp */
+extern json_spirit::Value checkwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value repairwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value zapwallettxes(const json_spirit::Array& params, bool fHelp);
+/* in rpccrypto.cpp */
+extern json_spirit::Value encryptmessage(const json_spirit::Array &params, bool fHelp);
+extern json_spirit::Value decryptmessage(const json_spirit::Array &params, bool fHelp);
+extern json_spirit::Value encryptdata(const json_spirit::Array &params, bool fHelp);
+extern json_spirit::Value decryptdata(const json_spirit::Array &params, bool fHelp);
 
 #endif

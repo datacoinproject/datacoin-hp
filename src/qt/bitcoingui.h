@@ -19,6 +19,7 @@ class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
 class ProofOfImage;
+class MessagePage;
 
 class CWallet;
 
@@ -69,6 +70,7 @@ public:
     QAction * getReceiveCoinsAction() { return receiveCoinsAction; }
     QAction * getSendCoinsAction() { return sendCoinsAction; }
     QAction * getProofOfImageAction() { return proofOfImageAction; }
+    QAction * getMessageAction() { return messageAction; }
 
 protected:
     void changeEvent(QEvent *e);
@@ -105,11 +107,15 @@ private:
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
     QAction *proofOfImageAction;
+    QAction *messageAction;
+    QAction *checkWalletAction;
+    QAction *repairWalletAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
     TransactionView *transactionView;
     RPCConsole *rpcConsole;
+    MessagePage *messagePage;
 
     QMovie *syncIconMovie;
     /** Keep track of previous number of blocks, to detect progress */
@@ -174,10 +180,16 @@ private slots:
     void gotoAddressBookPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
+    /** Check the wallet */
+    // void checkWallet();
+    /** Repair the wallet */
+    // void repairWallet();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
     /** Switch to data page */
     void gotoProofOfImagePage();
+    /** Switch to Message page */
+    void gotoMessagePage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

@@ -93,6 +93,11 @@ void WalletFrame::gotoProofOfImagePage()
     walletStack->gotoProofOfImagePage();
 }
 
+void WalletFrame::gotoMessagePage()
+{
+    walletStack->gotoMessagePage();
+}
+
 void WalletFrame::gotoAddressBookPage()
 {
     WalletView *walletView = currentWalletView();
@@ -136,6 +141,20 @@ void WalletFrame::backupWallet()
     WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->backupWallet();
+}
+
+void WalletFrame::checkWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->checkWallet();
+}
+
+void WalletFrame::repairWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->repairWallet();
 }
 
 void WalletFrame::changePassphrase()

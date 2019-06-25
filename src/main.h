@@ -123,6 +123,8 @@ static const uint64 nMinDiskSpace = 52428800;
 
 
 class CReserveKey;
+class CTxDB;
+class CTxIndex;
 class CCoinsDB;
 class CBlockTreeDB;
 struct CDiskBlockPos;

@@ -16,6 +16,7 @@ class TransactionView;
 class OverviewPage;
 class AddressBookPage;
 class ProofOfImage;
+class MessagePage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class RPCConsole;
@@ -64,8 +65,9 @@ private:
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
-    ProofOfImage *proofOfImagePage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
+    ProofOfImage *proofOfImagePage;
+    MessagePage *messagePage;
 
     TransactionView *transactionView;
 
@@ -78,11 +80,12 @@ public slots:
     void gotoAddressBookPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
-
-    void gotoProofOfImagePage();
-
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
+    /** Switch to data page */
+    void gotoProofOfImagePage();
+    /** Switch to message page */
+    void gotoMessagePage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
@@ -93,7 +96,7 @@ public slots:
 
         The new items are those between start and end inclusive, under the given parent item.
     */
-    void incomingTransaction(const QModelIndex& parent, int start, int /*end*/);
+    void incomingTransaction(const QModelIndex& parent, int start, int end);
     /** Encrypt the wallet */
     void encryptWallet(bool status);
     /** Backup the wallet */
@@ -102,6 +105,8 @@ public slots:
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
     void unlockWallet();
+    void checkWallet();
+    void repairWallet();
 
     void setEncryptionStatus();
 

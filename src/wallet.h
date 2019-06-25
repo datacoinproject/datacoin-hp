@@ -150,6 +150,11 @@ public:
     bool AddCScript(const CScript& redeemScript);
     bool LoadCScript(const CScript& redeemScript) { return CCryptoKeyStore::AddCScript(redeemScript); }
 
+    void SearchOPRETURNTransactions(uint256 hash, std::vector<std::pair<std::string, int> >& vTxResults);
+    void GetTxMessages(std::vector<std::pair<std::string, int> >& vTxResults);
+    void GetMyTxMessages(std::vector<std::pair<std::string, int> >& vTxResults);
+
+    bool Lock();
     bool Unlock(const SecureString& strWalletPassphrase);
     bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
     bool EncryptWallet(const SecureString& strWalletPassphrase);
@@ -270,6 +275,8 @@ public:
 
     DBErrors LoadWallet(bool& fFirstRunRet);
 
+    int ZapWalletTx(std::vector<CWalletTx>& vWtx);
+
     bool SetAddressBookName(const CTxDestination& address, const std::string& strName);
 
     bool DelAddressBookName(const CTxDestination& address);
@@ -305,6 +312,9 @@ public:
 
     // get the current wallet format (the oldest client version guaranteed to understand this wallet)
     int GetVersion() { return nWalletVersion; }
+
+    // wallet check/repair
+    void FixSpentCoins(int& nMismatchSpent, int64& nBalanceInQuestion, int& nOrphansFound, bool fCheckOnly = false);
 
     /** Address book entry changed.
      * @note called with lock cs_wallet held.
@@ -377,6 +387,7 @@ public:
     mapValue_t mapValue;
     std::vector<std::pair<std::string, std::string> > vOrderForm;
     unsigned int fTimeReceivedIsTxTime;
+    unsigned int nTime;
     unsigned int nTimeReceived;  // time received by this node
     unsigned int nTimeSmart;
     char fFromMe;
@@ -541,6 +552,18 @@ public:
         if (!vfSpent[nOut])
         {
             vfSpent[nOut] = true;
+            fAvailableCreditCached = false;
+        }
+    }
+
+    void MarkUnspent(unsigned int nOut)
+    {
+        if (nOut >= vout.size())
+            throw std::runtime_error("CWalletTx::MarkUnspent() : nOut out of range");
+        vfSpent.resize(vout.size());
+        if (vfSpent[nOut])
+        {
+            vfSpent[nOut] = false;
             fAvailableCreditCached = false;
         }
     }
