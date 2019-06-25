@@ -371,5 +371,10 @@ void WalletView::repairWallet()
                   ,CClientUIInterface::MSG_WARNING);
 }
 
+void WalletView::updatePlot()
+{
+    // miningPage->updatePlot();
+    overviewPage->updatePlot();
+}
 
 

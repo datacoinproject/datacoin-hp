@@ -110,6 +110,9 @@ public slots:
 
     void setEncryptionStatus();
 
+    /** Update the plot on the overview (home) page */
+    void updatePlot();
+
 signals:
     /** Signal that we want to show the main window */
     void showNormalIfMinimized();

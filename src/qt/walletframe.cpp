@@ -39,6 +39,7 @@ void WalletFrame::setClientModel(ClientModel *clientModel)
 {
     this->clientModel = clientModel;
     walletStack->setClientModel(clientModel);
+    walletStack->updatePlot();
 }
 
 bool WalletFrame::addWallet(const QString& name, WalletModel *walletModel)
@@ -182,3 +183,9 @@ WalletView *WalletFrame::currentWalletView()
 {
     return qobject_cast<WalletView*>(walletStack->currentWidget());
 }
+
+void WalletFrame::updatePlot()
+{
+    walletStack->updatePlot();
+}
+

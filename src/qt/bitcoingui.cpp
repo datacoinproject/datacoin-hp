@@ -670,6 +670,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
 
         progressBarLabel->setVisible(false);
         progressBar->setVisible(false);
+        walletFrame->updatePlot();
     }
     else
     {
@@ -714,6 +715,10 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
     labelBlocksIcon->setToolTip(tooltip);
     progressBarLabel->setToolTip(tooltip);
     progressBar->setToolTip(tooltip);
+
+    //if GetBoolArg("-chart", false)
+    //    if (count > 0 && nTotalBlocks > 0 && count >= nTotalBlocks)
+    //        overviewPage->updatePlot();
 }
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, bool *ret)

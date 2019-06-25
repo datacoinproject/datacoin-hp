@@ -9,6 +9,10 @@
 #include "transactionfilterproxy.h"
 #include "guiutil.h"
 #include "guiconstants.h"
+#include "main.h"
+#include "util.h"
+#include "init.h"
+#include "bitcoinrpc.h"
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
@@ -118,6 +122,28 @@ OverviewPage::OverviewPage(QWidget *parent) :
 
     // start with displaying the "out of sync" warnings
     showOutOfSyncWarning(true);
+
+    if(GetBoolArg("-chart", false))
+    {
+        ui->workplot->xAxis->setLabel("Last 7 days (10080 blocks)");
+        ui->workplot->yAxis->setLabel("Difficulty");
+        QFont label = font();
+        ui->workplot->yAxis->setLabelFont(label);
+        ui->workplot->yAxis->setTickLabelFont(label);
+        ui->workplot->xAxis->setTickLabels(false);
+        ui->workplot->xAxis->setAutoSubTicks(false);
+        ui->workplot->yAxis->setAutoSubTicks(false);
+        ui->workplot->xAxis->setSubTickCount(0);
+        ui->workplot->yAxis->setSubTickCount(0);
+        ui->workplot->addGraph(ui->workplot->xAxis, ui->workplot->yAxis);
+        ui->workplot->graph(0)->setPen(QPen(QColor(255, 165, 18)));
+        ui->workplot->graph(0)->setLineStyle(QCPGraph::lsNone);
+        ui->workplot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, QColor(255, 165, 18), 1));
+    }
+    else
+    {
+        ui->workplot->setVisible(false);
+    }
 }
 
 void OverviewPage::handleTransactionClicked(const QModelIndex &index)
@@ -211,3 +237,39 @@ void OverviewPage::showOutOfSyncWarning(bool fShow)
     ui->labelWalletStatus->setVisible(fShow);
     ui->labelTransactionsStatus->setVisible(fShow);
 }
+
+void OverviewPage::updatePlot()
+{
+    // Double Check to make sure we don't try to update the plot when it is disabled
+    if (!GetBoolArg("-chart", false)) {
+        return;
+    }
+
+    int numLookBack = 10080;
+    double diffMax = 0;
+    CBlockIndex* pindex = pindexBest;
+    int height = nBestHeight;
+    int xStart = std::max<int>(height-numLookBack, 0) + 1;
+    int xEnd = height;
+    int i = numLookBack-1;
+    int x = xEnd;
+    vX.resize(numLookBack);
+    vY.resize(numLookBack);
+    CBlockIndex* itr = pindex;
+    while(i >= 0 && itr != NULL)
+    {
+        vX[i] = itr->nHeight;
+        vY[i] = GetDifficulty(itr);
+        diffMax = std::max<double>(diffMax, vY[i]);
+
+        itr = itr->pprev;
+        i--;
+        x--;
+    }
+    ui->workplot->graph(0)->setData(vX, vY);
+    ui->workplot->xAxis->setRange((double)xStart, (double)xEnd);
+    ui->workplot->yAxis->setRange(0, diffMax+(diffMax/10));
+
+    ui->workplot->replot();
+}
+
