@@ -3,6 +3,9 @@
 # Distributed under conditional MIT/X11 software license,
 # see the accompanying file COPYING
 
+# OPENSSL_INCLUDE_PATH=/usr/local/openssl/include
+# OPENSSL_LIB_PATH=/usr/local/openssl/lib
+
 STATIC:=1
 # :=0 --> UPnP support turned off by default at runtime
 # :=1 --> UPnP support turned on by default at runtime
@@ -145,6 +148,7 @@ OBJS= \
     obj/rpcblockchain.o \
     obj/rpcrawtransaction.o \
     obj/script.o \
+    obj/smalldata.o \
     obj/sync.o \
     obj/util.o \
     obj/wallet.o \
@@ -155,7 +159,11 @@ OBJS= \
     obj/leveldb.o \
     obj/txdb.o \
     obj/prime.o \
-    obj/checkpointsync.o
+    obj/checkpointsync.o \
+    obj/ecies.o \
+    obj/kdf.o \
+    obj/secure.o
+
 
 all: datacoind
 
@@ -180,6 +188,15 @@ obj/build.h: FORCE
 	/bin/sh ../share/genbuild.sh obj/build.h
 version.cpp: obj/build.h
 DEFS += -DHAVE_BUILD_INFO
+
+obj/ecies.o: ecies/ecies.c
+	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $^
+
+obj/secure.o: ecies/secure.c
+	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $^
+
+obj/kdf.o: ecies/kdf.c
+	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $^
 
 obj/%.o: %.cpp
 	$(CXX) -c $(xCXXFLAGS) -MMD -MF $(@:%.o=%.d) -o $@ $<
